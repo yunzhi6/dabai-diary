@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>大白日记 · 每日复盘</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#ffffff; --sec:#f3f1ea;
+  --t1:#1f1f1d; --t2:#6b6a64; --line:rgba(0,0,0,0.12);
+  --info-bg:#e6f1fb; --info-t:#185fa5; --rad:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1a1b1e; --card:#26282c; --sec:#2f3136; --t1:#ececec; --t2:#a3a39c; --line:rgba(255,255,255,0.14); --info-bg:#0c447c; --info-t:#b5d4f4; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--t1);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding:16px 14px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.title{font-size:20px;font-weight:600}
+.nav{display:flex;align-items:center;gap:6px}
+.sec{background:var(--card);border:0.5px solid var(--line);border-radius:var(--rad);padding:14px 16px;margin-bottom:14px}
+.h{font-size:16px;font-weight:600;margin:0 0 10px}
+.l{font-size:13px;color:var(--t2);margin:10px 0 4px}
+input,textarea,button{font-family:inherit;font-size:15px;color:var(--t1)}
+input.f,textarea.f{width:100%;background:var(--bg);border:0.5px solid var(--line);border-radius:8px;padding:9px 10px;outline:none}
+textarea.f{min-height:54px;resize:vertical}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.row input.f{flex:1}
+.ck{width:20px;height:20px;flex:0 0 auto}
+.eg{display:flex;gap:6px;flex:1}
+.eb{flex:1;padding:7px 0;background:var(--bg);border:0.5px solid var(--line);border-radius:8px;text-align:center;cursor:pointer;font-weight:600}
+.eb.on{background:var(--info-bg);color:var(--info-t);border-color:var(--info-t)}
+button.act{background:var(--card);border:0.5px solid var(--line);border-radius:8px;padding:9px 14px;cursor:pointer}
+button.act:active{transform:scale(0.98)}
+.foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.status{font-size:13px;color:var(--t2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="title">🐳 大白日记</div>
+    <div class="nav">
+      <button class="act" id="prev">◀</button>
+      <span id="dlabel" style="font-size:14px;min-width:150px;text-align:center"></span>
+      <button class="act" id="next">▶</button>
+      <button class="act" id="today">今天</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <p class="h">☀️ 晨 · 计划</p>
+    <p class="l">今日意图（一句话，为什么而做）</p>
+    <input class="f" id="intent" placeholder="今天我想…" />
+    <p class="l">最重要的 3 件事（MIT）</p>
+    <div class="row"><input type="checkbox" class="ck" id="m1c"/><input class="f" id="m1" placeholder="第 1 件"/></div>
+    <div class="row"><input type="checkbox" class="ck" id="m2c"/><input class="f" id="m2" placeholder="第 2 件"/></div>
+    <div class="row"><input type="checkbox" class="ck" id="m3c"/><input class="f" id="m3" placeholder="第 3 件"/></div>
+  </div>
+
+  <div class="sec">
+    <p class="h">⚡ 日 · 精力 + 执行</p>
+    <p class="l">精力打卡（1 低 — 5 满）</p>
+    <div class="row"><span style="font-size:13px;width:24px;color:var(--t2)">早</span><div class="eg" data-e="am"></div></div>
+    <div class="row"><span style="font-size:13px;width:24px;color:var(--t2)">中</span><div class="eg" data-e="noon"></div></div>
+    <div class="row"><span style="font-size:13px;width:24px;color:var(--t2)">晚</span><div class="eg" data-e="pm"></div></div>
+    <p class="l">今天做了什么（随手记）</p>
+    <textarea class="f" id="log" placeholder="拍了切片 / 发了消息 / 谈了合作…"></textarea>
+    <p class="l">分心 / 干扰（什么打断了我）</p>
+    <textarea class="f" id="distract" placeholder="刷手机、被人找、内耗…"></textarea>
+  </div>
+
+  <div class="sec">
+    <p class="h">🌙 晚 · 复盘 · 反思 · 优化</p>
+    <p class="l">今天最有价值的一件事</p>
+    <input class="f" id="valuable" placeholder="哪件事最值得？"/>
+    <p class="l">一个反思（哪里可以更好）</p>
+    <textarea class="f" id="reflect" placeholder="今天哪里没做好、为什么…"></textarea>
+    <p class="l">一个优化（明天怎么改）</p>
+    <textarea class="f" id="optimize" placeholder="明天就改这一点…"></textarea>
+    <p class="l">给自己一句肯定</p>
+    <input class="f" id="affirm" placeholder="我今天…，我做得很好"/>
+  </div>
+
+  <div class="foot">
+    <span class="status" id="status">💾 自动保存到本机</span>
+    <span style="flex:1"></span>
+    <button class="act" id="copy">📋 复制今日</button>
+    <button class="act" id="backup">⬇ 备份全部</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY="dabai_diary_v1";
+  var fields=["intent","m1","m2","m3","log","distract","valuable","reflect","optimize","affirm"];
+  var checks=["m1c","m2c","m3c"];
+  var energy={am:0,noon:0,pm:0};
+  var cur=new Date();
+  function db(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+  function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+  function label(d){var w=["日","一","二","三","四","五","六"];return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日 周"+w[d.getDay()]}
+  function buildEnergy(){document.querySelectorAll(".eg").forEach(function(g){var k=g.dataset.e;g.innerHTML="";for(var i=1;i<=5;i++){(function(i){var b=document.createElement("div");b.className="eb";b.textContent=i;b.onclick=function(){energy[k]=energy[k]===i?0:i;paintEnergy();save()};g.appendChild(b)})(i)}})}
+  function paintEnergy(){document.querySelectorAll(".eg").forEach(function(g){var k=g.dataset.e;[].forEach.call(g.children,function(b,idx){b.classList.toggle("on",(idx+1)<=energy[k]&&energy[k]>0)})})}
+  function load(){var d=db()[ymd(cur)]||{};fields.forEach(function(f){document.getElementById(f).value=d[f]||""});checks.forEach(function(c){document.getElementById(c).checked=!!d[c]});energy={am:d.e_am||0,noon:d.e_noon||0,pm:d.e_pm||0};paintEnergy();document.getElementById("dlabel").textContent=label(cur)}
+  function save(){var all=db();var o={};fields.forEach(function(f){o[f]=document.getElementById(f).value});checks.forEach(function(c){o[c]=document.getElementById(c).checked});o.e_am=energy.am;o.e_noon=energy.noon;o.e_pm=energy.pm;all[ymd(cur)]=o;localStorage.setItem(KEY,JSON.stringify(all));var s=document.getElementById("status");s.textContent="✅ 已保存";setTimeout(function(){s.textContent="💾 自动保存到本机"},1200)}
+  function text(){var g=function(id){return document.getElementById(id).value};var mk=function(id){return (document.getElementById(id+"c").checked?"[x] ":"[ ] ")+(g(id)||"")};return label(cur)+" 大白日记\n\n【意图】"+g("intent")+"\n【MIT】\n- "+mk("m1")+"\n- "+mk("m2")+"\n- "+mk("m3")+"\n\n【精力】早"+energy.am+" 中"+energy.noon+" 晚"+energy.pm+"\n【今日记录】"+g("log")+"\n【干扰】"+g("distract")+"\n\n【最有价值】"+g("valuable")+"\n【反思】"+g("reflect")+"\n【优化】"+g("optimize")+"\n【肯定】"+g("affirm")}
+  buildEnergy();load();
+  document.addEventListener("input",function(e){if(e.target.classList&&e.target.classList.contains("f"))save()});
+  document.addEventListener("change",function(e){if(e.target.type==="checkbox")save()});
+  document.getElementById("prev").onclick=function(){cur.setDate(cur.getDate()-1);load()};
+  document.getElementById("next").onclick=function(){cur.setDate(cur.getDate()+1);load()};
+  document.getElementById("today").onclick=function(){cur=new Date();load()};
+  document.getElementById("copy").onclick=function(){var b=this;navigator.clipboard.writeText(text()).then(function(){b.textContent="✅ 已复制";setTimeout(function(){b.textContent="📋 复制今日"},1500)})};
+  document.getElementById("backup").onclick=function(){var blob=new Blob([localStorage.getItem(KEY)||"{}"],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="大白日记备份-"+ymd(new Date())+".json";a.click()};
+})();
+</script>
+</body>
+</html>
