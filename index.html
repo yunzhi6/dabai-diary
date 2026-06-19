@@ -57,6 +57,8 @@ button.act:active{transform:scale(0.98)}
     <p class="l">最重要的事（MIT，可加任意多条）</p>
     <div id="mitlist"></div>
     <button class="act" id="addmit" style="margin-top:4px">＋ 添加一件</button>
+    <p class="l">附加意见 / 其他想法（可选）</p>
+    <textarea class="f" id="extra" placeholder="任何想补充的…"></textarea>
   </div>
 
   <div class="sec">
@@ -94,7 +96,7 @@ button.act:active{transform:scale(0.98)}
 <script>
 (function(){
   var KEY="dabai_diary_v1";
-  var fields=["intent","log","distract","valuable","reflect","optimize","affirm"];
+  var fields=["intent","extra","log","distract","valuable","reflect","optimize","affirm"];
   var energy={am:0,noon:0,pm:0};
   var cur=new Date();
   function db(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
@@ -134,7 +136,7 @@ button.act:active{transform:scale(0.98)}
   function text(){
     var g=function(id){return document.getElementById(id).value};
     var mit=collectMit().filter(function(m){return m.text}).map(function(m){return (m.done?"[x] ":"[ ] ")+m.text}).join("\n- ");
-    return label(cur)+" 大白日记\n\n【意图】"+g("intent")+"\n【最重要的事】\n- "+mit+"\n\n【精力】早"+energy.am+" 中"+energy.noon+" 晚"+energy.pm+"\n【今日记录】"+g("log")+"\n【干扰】"+g("distract")+"\n\n【最有价值】"+g("valuable")+"\n【反思】"+g("reflect")+"\n【优化】"+g("optimize")+"\n【肯定】"+g("affirm");
+    return label(cur)+" 大白日记\n\n【意图】"+g("intent")+"\n【最重要的事】\n- "+mit+"\n【附加意见】"+g("extra")+"\n\n【精力】早"+energy.am+" 中"+energy.noon+" 晚"+energy.pm+"\n【今日记录】"+g("log")+"\n【干扰】"+g("distract")+"\n\n【最有价值】"+g("valuable")+"\n【反思】"+g("reflect")+"\n【优化】"+g("optimize")+"\n【肯定】"+g("affirm");
   }
 
   buildEnergy();load();
