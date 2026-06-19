@@ -89,8 +89,10 @@ button.act:active{transform:scale(0.98)}
     <span class="status" id="status">💾 自动保存到本机</span>
     <span style="flex:1"></span>
     <button class="act" id="copy">📋 复制今日</button>
+    <button class="act" id="feishu">🚀 一键保存到飞书</button>
     <button class="act" id="backup">⬇ 备份全部</button>
   </div>
+  <p id="fsmsg" style="font-size:13px;color:var(--t2);margin-top:8px"></p>
 </div>
 
 <script>
@@ -147,6 +149,43 @@ button.act:active{transform:scale(0.98)}
   document.getElementById("today").onclick=function(){cur=new Date();load()};
   document.getElementById("copy").onclick=function(){var b=this;navigator.clipboard.writeText(text()).then(function(){b.textContent="✅ 已复制";setTimeout(function(){b.textContent="📋 复制今日"},1500)})};
   document.getElementById("backup").onclick=function(){var blob=new Blob([localStorage.getItem(KEY)||"{}"],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="大白日记备份-"+ymd(new Date())+".json";a.click()};
+
+  function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br/>")}
+  function buildXml(){
+    var g=function(id){return document.getElementById(id).value};
+    var mit=collectMit().filter(function(m){return m.text}).map(function(m){return '<checkbox done="'+(m.done?"true":"false")+'">'+esc(m.text)+'</checkbox>'}).join("");
+    if(!mit)mit="<p>（未填）</p>";
+    return '<title>'+label(cur)+' 大白日记</title>'+
+      '<h1>☀ 晨 · 计划</h1>'+
+      '<p><b>今日意图：</b>'+esc(g("intent"))+'</p>'+
+      '<p><b>最重要的事（MIT）：</b></p>'+mit+
+      '<p><b>附加意见：</b>'+esc(g("extra"))+'</p>'+
+      '<h1>⚡ 日 · 精力 + 执行</h1>'+
+      '<p><b>精力：</b>早 '+energy.am+'　中 '+energy.noon+'　晚 '+energy.pm+'</p>'+
+      '<p><b>今天做了什么：</b>'+esc(g("log"))+'</p>'+
+      '<p><b>分心 / 干扰：</b>'+esc(g("distract"))+'</p>'+
+      '<h1>🌙 晚 · 复盘 · 反思 · 优化</h1>'+
+      '<p><b>最有价值的一件事：</b>'+esc(g("valuable"))+'</p>'+
+      '<p><b>一个反思：</b>'+esc(g("reflect"))+'</p>'+
+      '<p><b>一个优化（明天怎么改）：</b>'+esc(g("optimize"))+'</p>'+
+      '<p><b>给自己一句肯定：</b>'+esc(g("affirm"))+'</p>';
+  }
+  document.getElementById("feishu").onclick=function(){
+    var b=this,msg=document.getElementById("fsmsg");
+    b.textContent="⏳ 正在保存…";msg.textContent="";
+    fetch("/save-to-feishu",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:buildXml()})})
+      .then(function(r){return r.json()})
+      .then(function(j){
+        b.textContent="🚀 一键保存到飞书";
+        if(j&&j.ok&&j.url){msg.innerHTML='✅ 已存到飞书：<a href="'+j.url+'" target="_blank">点此打开</a>'}
+        else{msg.textContent="保存失败："+((j&&j.raw)||"未知错误")}
+      })
+      .catch(function(){
+        b.textContent="🚀 一键保存到飞书";
+        navigator.clipboard.writeText(text());
+        msg.textContent="ℹ️ 当前是网页版（手机/GitHub），无法直连飞书。内容已复制，去飞书粘贴即可；要一键直存，请在电脑上用「大白日记桥梁」打开本页。";
+      });
+  };
 })();
 </script>
 </body>
