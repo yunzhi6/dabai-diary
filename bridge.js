@@ -51,8 +51,8 @@ http.createServer(function (req, res) {
       function create() {
         runLark(["docs", "+create", "--api-version", "v2", "--content", "-"], content, function (ok, url, rm) { reply(!!url, url, rm); });
       }
-      if (doc && body) {
-        runLark(["docs", "+update", "--api-version", "v2", "--doc", doc, "--command", "overwrite", "--content", "-"], body, function (ok, url, rm) {
+      if (doc) {
+        runLark(["docs", "+update", "--api-version", "v2", "--doc", doc, "--command", "overwrite", "--content", "-"], content, function (ok, url, rm) {
           if (ok) { reply(true, doc, rm); } else { create(); }
         });
       } else {

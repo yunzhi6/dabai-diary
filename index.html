@@ -141,7 +141,7 @@ button.act:active{transform:scale(0.98)}
   function text(){
     var g=function(id){return document.getElementById(id).value};
     var mit=collectMit().filter(function(m){return m.text}).map(function(m){return (m.done?"[x] ":"[ ] ")+m.text}).join("\n- ");
-    return label(cur)+" 大白日记\n\n【意图】"+g("intent")+"\n【最重要的事】\n- "+mit+"\n【附加意见】"+g("extra")+"\n\n【精力】早"+energy.am+" 中"+energy.noon+" 晚"+energy.pm+"\n【今日记录】"+g("log")+"\n【干扰】"+g("distract")+"\n\n【最有价值】"+g("valuable")+"\n【反思】"+g("reflect")+"\n【优化】"+g("optimize")+"\n【肯定】"+g("affirm");
+    return fsTitle()+"\n\n【意图】"+g("intent")+"\n【最重要的事】\n- "+mit+"\n【附加意见】"+g("extra")+"\n\n【精力】早"+energy.am+" 中"+energy.noon+" 晚"+energy.pm+"\n【今日记录】"+g("log")+"\n【干扰】"+g("distract")+"\n\n【最有价值】"+g("valuable")+"\n【反思】"+g("reflect")+"\n【优化】"+g("optimize")+"\n【肯定】"+g("affirm");
   }
 
   buildEnergy();load();
@@ -154,6 +154,7 @@ button.act:active{transform:scale(0.98)}
   document.getElementById("backup").onclick=function(){var blob=new Blob([localStorage.getItem(KEY)||"{}"],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="大白日记备份-"+ymd(new Date())+".json";a.click()};
 
   function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br/>")}
+  function fsTitle(){var mm=String(cur.getMonth()+1).padStart(2,"0"),dd=String(cur.getDate()).padStart(2,"0");return mm+dd+"-"+cur.getFullYear()+"大白日记"}
   function buildXml(){
     var g=function(id){return document.getElementById(id).value};
     var mit=collectMit().filter(function(m){return m.text}).map(function(m){return '<checkbox done="'+(m.done?"true":"false")+'">'+esc(m.text)+'</checkbox>'}).join("");
@@ -179,8 +180,8 @@ button.act:active{transform:scale(0.98)}
   document.getElementById("feishu").onclick=function(){
     var b=this,msg=document.getElementById("fsmsg");
     b.textContent="⏳ 正在保存…";msg.textContent="";
-    var _body=buildXml();var _content='<title>'+label(cur)+' 大白日记</title>'+_body;
-    fetch("/save-to-feishu",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:_content,body:_body,doc:curFeishuUrl||""})})
+    var _content='<title>'+fsTitle()+'</title>'+buildXml();
+    fetch("/save-to-feishu",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:_content,doc:curFeishuUrl||""})})
       .then(function(r){return r.json()})
       .then(function(j){
         b.textContent="🚀 一键保存到飞书";
