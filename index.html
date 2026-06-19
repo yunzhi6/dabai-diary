@@ -28,6 +28,7 @@ textarea.f{min-height:54px;resize:vertical}
 .row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .row input.f{flex:1}
 .ck{width:20px;height:20px;flex:0 0 auto}
+.del{flex:0 0 auto;background:none;border:none;color:var(--t2);cursor:pointer;font-size:18px;padding:2px 4px}
 .eg{display:flex;gap:6px;flex:1}
 .eb{flex:1;padding:7px 0;background:var(--bg);border:0.5px solid var(--line);border-radius:8px;text-align:center;cursor:pointer;font-weight:600}
 .eb.on{background:var(--info-bg);color:var(--info-t);border-color:var(--info-t)}
@@ -53,10 +54,9 @@ button.act:active{transform:scale(0.98)}
     <p class="h">☀️ 晨 · 计划</p>
     <p class="l">今日意图（一句话，为什么而做）</p>
     <input class="f" id="intent" placeholder="今天我想…" />
-    <p class="l">最重要的 3 件事（MIT）</p>
-    <div class="row"><input type="checkbox" class="ck" id="m1c"/><input class="f" id="m1" placeholder="第 1 件"/></div>
-    <div class="row"><input type="checkbox" class="ck" id="m2c"/><input class="f" id="m2" placeholder="第 2 件"/></div>
-    <div class="row"><input type="checkbox" class="ck" id="m3c"/><input class="f" id="m3" placeholder="第 3 件"/></div>
+    <p class="l">最重要的事（MIT，可加任意多条）</p>
+    <div id="mitlist"></div>
+    <button class="act" id="addmit" style="margin-top:4px">＋ 添加一件</button>
   </div>
 
   <div class="sec">
@@ -94,21 +94,52 @@ button.act:active{transform:scale(0.98)}
 <script>
 (function(){
   var KEY="dabai_diary_v1";
-  var fields=["intent","m1","m2","m3","log","distract","valuable","reflect","optimize","affirm"];
-  var checks=["m1c","m2c","m3c"];
+  var fields=["intent","log","distract","valuable","reflect","optimize","affirm"];
   var energy={am:0,noon:0,pm:0};
   var cur=new Date();
   function db(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
   function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
   function label(d){var w=["日","一","二","三","四","五","六"];return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日 周"+w[d.getDay()]}
+
   function buildEnergy(){document.querySelectorAll(".eg").forEach(function(g){var k=g.dataset.e;g.innerHTML="";for(var i=1;i<=5;i++){(function(i){var b=document.createElement("div");b.className="eb";b.textContent=i;b.onclick=function(){energy[k]=energy[k]===i?0:i;paintEnergy();save()};g.appendChild(b)})(i)}})}
   function paintEnergy(){document.querySelectorAll(".eg").forEach(function(g){var k=g.dataset.e;[].forEach.call(g.children,function(b,idx){b.classList.toggle("on",(idx+1)<=energy[k]&&energy[k]>0)})})}
-  function load(){var d=db()[ymd(cur)]||{};fields.forEach(function(f){document.getElementById(f).value=d[f]||""});checks.forEach(function(c){document.getElementById(c).checked=!!d[c]});energy={am:d.e_am||0,noon:d.e_noon||0,pm:d.e_pm||0};paintEnergy();document.getElementById("dlabel").textContent=label(cur)}
-  function save(){var all=db();var o={};fields.forEach(function(f){o[f]=document.getElementById(f).value});checks.forEach(function(c){o[c]=document.getElementById(c).checked});o.e_am=energy.am;o.e_noon=energy.noon;o.e_pm=energy.pm;all[ymd(cur)]=o;localStorage.setItem(KEY,JSON.stringify(all));var s=document.getElementById("status");s.textContent="✅ 已保存";setTimeout(function(){s.textContent="💾 自动保存到本机"},1200)}
-  function text(){var g=function(id){return document.getElementById(id).value};var mk=function(id){return (document.getElementById(id+"c").checked?"[x] ":"[ ] ")+(g(id)||"")};return label(cur)+" 大白日记\n\n【意图】"+g("intent")+"\n【MIT】\n- "+mk("m1")+"\n- "+mk("m2")+"\n- "+mk("m3")+"\n\n【精力】早"+energy.am+" 中"+energy.noon+" 晚"+energy.pm+"\n【今日记录】"+g("log")+"\n【干扰】"+g("distract")+"\n\n【最有价值】"+g("valuable")+"\n【反思】"+g("reflect")+"\n【优化】"+g("optimize")+"\n【肯定】"+g("affirm")}
+
+  function mitRow(item){
+    var row=document.createElement("div");row.className="row mit-row";
+    var ck=document.createElement("input");ck.type="checkbox";ck.className="ck mit-c";ck.checked=!!(item&&item.done);
+    var tx=document.createElement("input");tx.className="f mit-t";tx.placeholder="一件重要的事";tx.value=(item&&item.text)||"";
+    var del=document.createElement("button");del.className="del";del.innerHTML="✕";del.title="删除";
+    del.onclick=function(){row.remove();save()};
+    ck.onchange=save;
+    row.appendChild(ck);row.appendChild(tx);row.appendChild(del);
+    return row;
+  }
+  function renderMit(arr){var box=document.getElementById("mitlist");box.innerHTML="";(arr&&arr.length?arr:[{},{},{}]).forEach(function(it){box.appendChild(mitRow(it))})}
+  function collectMit(){var out=[];document.querySelectorAll("#mitlist .mit-row").forEach(function(r){out.push({text:r.querySelector(".mit-t").value,done:r.querySelector(".mit-c").checked})});return out}
+
+  function load(){
+    var d=db()[ymd(cur)]||{};
+    fields.forEach(function(f){document.getElementById(f).value=d[f]||""});
+    renderMit(d.mit);
+    energy={am:d.e_am||0,noon:d.e_noon||0,pm:d.e_pm||0};paintEnergy();
+    document.getElementById("dlabel").textContent=label(cur);
+  }
+  function save(){
+    var all=db();var o={};
+    fields.forEach(function(f){o[f]=document.getElementById(f).value});
+    o.mit=collectMit();o.e_am=energy.am;o.e_noon=energy.noon;o.e_pm=energy.pm;
+    all[ymd(cur)]=o;localStorage.setItem(KEY,JSON.stringify(all));
+    var s=document.getElementById("status");s.textContent="✅ 已保存";setTimeout(function(){s.textContent="💾 自动保存到本机"},1200);
+  }
+  function text(){
+    var g=function(id){return document.getElementById(id).value};
+    var mit=collectMit().filter(function(m){return m.text}).map(function(m){return (m.done?"[x] ":"[ ] ")+m.text}).join("\n- ");
+    return label(cur)+" 大白日记\n\n【意图】"+g("intent")+"\n【最重要的事】\n- "+mit+"\n\n【精力】早"+energy.am+" 中"+energy.noon+" 晚"+energy.pm+"\n【今日记录】"+g("log")+"\n【干扰】"+g("distract")+"\n\n【最有价值】"+g("valuable")+"\n【反思】"+g("reflect")+"\n【优化】"+g("optimize")+"\n【肯定】"+g("affirm");
+  }
+
   buildEnergy();load();
   document.addEventListener("input",function(e){if(e.target.classList&&e.target.classList.contains("f"))save()});
-  document.addEventListener("change",function(e){if(e.target.type==="checkbox")save()});
+  document.getElementById("addmit").onclick=function(){document.getElementById("mitlist").appendChild(mitRow({}));save()};
   document.getElementById("prev").onclick=function(){cur.setDate(cur.getDate()-1);load()};
   document.getElementById("next").onclick=function(){cur.setDate(cur.getDate()+1);load()};
   document.getElementById("today").onclick=function(){cur=new Date();load()};
