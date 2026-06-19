@@ -90,6 +90,7 @@ button.act:active{transform:scale(0.98)}
     <span style="flex:1"></span>
     <button class="act" id="copy">📋 复制今日</button>
     <button class="act" id="feishu">🚀 一键保存到飞书</button>
+    <button class="act" id="openfs">📄 打开飞书文档</button>
     <button class="act" id="backup">⬇ 备份全部</button>
   </div>
   <p id="fsmsg" style="font-size:13px;color:var(--t2);margin-top:8px"></p>
@@ -100,6 +101,7 @@ button.act:active{transform:scale(0.98)}
   var KEY="dabai_diary_v1";
   var fields=["intent","extra","log","distract","valuable","reflect","optimize","affirm"];
   var energy={am:0,noon:0,pm:0};
+  var curFeishuUrl="";
   var cur=new Date();
   function db(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
   function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
@@ -126,12 +128,13 @@ button.act:active{transform:scale(0.98)}
     fields.forEach(function(f){document.getElementById(f).value=d[f]||""});
     renderMit(d.mit);
     energy={am:d.e_am||0,noon:d.e_noon||0,pm:d.e_pm||0};paintEnergy();
+    curFeishuUrl=d.feishuUrl||"";
     document.getElementById("dlabel").textContent=label(cur);
   }
   function save(){
     var all=db();var o={};
     fields.forEach(function(f){o[f]=document.getElementById(f).value});
-    o.mit=collectMit();o.e_am=energy.am;o.e_noon=energy.noon;o.e_pm=energy.pm;
+    o.mit=collectMit();o.e_am=energy.am;o.e_noon=energy.noon;o.e_pm=energy.pm;o.feishuUrl=curFeishuUrl;
     all[ymd(cur)]=o;localStorage.setItem(KEY,JSON.stringify(all));
     var s=document.getElementById("status");s.textContent="✅ 已保存";setTimeout(function(){s.textContent="💾 自动保存到本机"},1200);
   }
@@ -170,6 +173,10 @@ button.act:active{transform:scale(0.98)}
       '<p><b>一个优化（明天怎么改）：</b>'+esc(g("optimize"))+'</p>'+
       '<p><b>给自己一句肯定：</b>'+esc(g("affirm"))+'</p>';
   }
+  document.getElementById("openfs").onclick=function(){
+    if(curFeishuUrl){window.open(curFeishuUrl,"_blank")}
+    else{document.getElementById("fsmsg").textContent="这一天还没存过飞书——先点「🚀 一键保存到飞书」生成文档。"}
+  };
   document.getElementById("feishu").onclick=function(){
     var b=this,msg=document.getElementById("fsmsg");
     b.textContent="⏳ 正在保存…";msg.textContent="";
@@ -177,7 +184,7 @@ button.act:active{transform:scale(0.98)}
       .then(function(r){return r.json()})
       .then(function(j){
         b.textContent="🚀 一键保存到飞书";
-        if(j&&j.ok&&j.url){msg.innerHTML='✅ 已存到飞书：<a href="'+j.url+'" target="_blank">点此打开</a>'}
+        if(j&&j.ok&&j.url){curFeishuUrl=j.url;save();window.open(j.url,"_blank");msg.innerHTML='✅ 已存到飞书并打开：<a href="'+j.url+'" target="_blank">点此再次打开</a>'}
         else{msg.textContent="保存失败："+((j&&j.raw)||"未知错误")}
       })
       .catch(function(){
